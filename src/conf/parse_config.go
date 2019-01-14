@@ -68,6 +68,7 @@ func GetApiList(path string) []ApiInfo {
 
 	err = yaml.Unmarshal(c, &api)
 	if err != nil {
+		fmt.Println(err)
 		panic("接口配置错误:" + path)
 	}
 

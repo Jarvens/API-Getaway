@@ -1,0 +1,6 @@
+apiname: 新增网关
+requesturl: /GateWay/Add
+methodtype: GET
+groupname: 网关组1
+groupid: 1001
+status: on
