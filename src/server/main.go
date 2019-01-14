@@ -18,6 +18,16 @@ func main() {
 	http.HandleFunc("/GateWay/Edit", controller.EditGateWay)
 	http.HandleFunc("GateWay/Delete", controller.DeleteGateWay)
 
+	// 接口操作
+	http.HandleFunc("/Api/Add", controller.AddApi)
+	http.HandleFunc("/Api/Edit", controller.EditApi)
+	http.HandleFunc("/Api/Delete", controller.DeleteApi)
+
+	//策略操作
+	http.HandleFunc("/Strategy/Add", controller.AddStrategy)
+	http.HandleFunc("/Strategy/Edit", controller.EditStrategy)
+	http.HandleFunc("/Strategy/Delete", controller.DeleteStrategy)
+
 	err := http.ListenAndServe(":9900", nil)
 
 	if err != nil {
