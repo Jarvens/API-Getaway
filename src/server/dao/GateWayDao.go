@@ -3,14 +3,17 @@
 // description:
 package dao
 
-import (
-	"conf"
-	conf2 "server/conf"
-)
+import "server/conf"
 
 // 创建网关信息
 func AddGateWay(gateWayName, gateWayAlias string) bool {
 
-	gateWay := conf.ParseConfigInfo(conf2.GlobalConf.GateWayConfPath)
+	gateWay := conf.ParseGateWayInfo(conf.GlobalConf.GateWayConfPath)
+	_, ok := gateWay[gateWayAlias]
+	if ok {
+		return false
+	} else {
 
+	}
+	return true
 }
