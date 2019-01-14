@@ -4,15 +4,18 @@
 package conf
 
 import (
+	"fmt"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
-	"os"
+	"log"
 )
 
 func ParseConfigInfo() GlobalConfig {
+	fmt.Printf("解析配置文件：%s", Configure)
 	var g GlobalConfig
 	err := yaml.Unmarshal([]byte(Configure), &g)
 	if err != nil {
+		log.Println(err)
 		panic("全局网关配置错误!")
 	}
 	path, err := GetDir(g.GateConfigPath)
@@ -29,11 +32,12 @@ func ParseConfigInfo() GlobalConfig {
 // 查询网关列表
 func GateWayList(path []string) []GateWayInfo {
 	gateWayList := make([]GateWayInfo, 0)
-	PthSep := string(os.PathSeparator)
+	//PthSep := string(os.PathSeparator)
 	for _, p := range path {
 		var gateWayInfo GateWayInfo
-		c, err := ioutil.ReadFile(p + PthSep)
+		c, err := ioutil.ReadFile(p)
 		if err != nil {
+			fmt.Println("打印错误信息", err)
 			panic("网关路径错误")
 		}
 		err = yaml.Unmarshal(c, &gateWayInfo)

@@ -4,6 +4,7 @@
 package conf
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"time"
@@ -77,19 +78,28 @@ type RateLimitInfo struct {
 func init() {
 	//初始化为 空字符
 	Configure = ""
+	fmt.Printf("初始化全局配置路径: %v", Configure)
 }
 
 func GetDir(path string) (files []string, err error) {
 	files = make([]string, 0)
 	dir, err := ioutil.ReadDir(path)
 	if err != nil {
+		fmt.Printf("读取配置文件错误：%v", err)
 		return nil, err
 	}
 
 	separator := string(os.PathSeparator)
 	for _, val := range dir {
 		if val.IsDir() {
-			files = append(files, path+separator+val.Name())
+			file, err1 := ioutil.ReadDir(path + separator + val.Name())
+			if err1 != nil {
+				fmt.Printf("读取文件错误：%v", err1)
+			}
+			for _, v1 := range file {
+				files = append(files, path+separator+val.Name()+separator+v1.Name())
+				fmt.Printf("文件名称为：%v", v1.Name())
+			}
 		}
 	}
 	return files, nil
@@ -98,6 +108,7 @@ func GetDir(path string) (files []string, err error) {
 func ReadConfigure(filePath string) (err error) {
 	file, err := os.Open(filePath)
 	if err != nil {
+		fmt.Println(err)
 		return
 	}
 	content, err := ioutil.ReadAll(file)
@@ -105,5 +116,6 @@ func ReadConfigure(filePath string) (err error) {
 		return
 	}
 	Configure = string(content)
+	fmt.Printf("读取全局配置文件为: %s\n", Configure)
 	return
 }

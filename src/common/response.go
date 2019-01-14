@@ -9,7 +9,7 @@ type Response struct {
 	Code      int         `json:"code"`
 	Message   string      `json:"message"`
 	Body      interface{} `json:"body"`
-	TimeStamp time.Time   `json:"time_stamp"`
+	TimeStamp string      `json:"time_stamp"`
 }
 
 const (
@@ -21,10 +21,10 @@ const (
 
 // SUCCESS
 func (res Response) Success(data interface{}) Response {
-	return Response{SUCECSS, "success", data, time.Now()}
+	return Response{SUCECSS, "success", data, time.Now().Format(TimeFormat)}
 }
 
 // FAIL
 func (res *Response) Fail(message string) *Response {
-	return &Response{FAIL, message, nil, time.Now()}
+	return &Response{FAIL, message, nil, time.Now().Format(TimeFormat)}
 }
