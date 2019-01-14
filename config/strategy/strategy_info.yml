@@ -1,0 +1,25 @@
+strategy:
+  - strategyname: 策略1
+    strategyid: 101010
+    auth: yes
+    basicusername: admin
+    baseipassword: admin
+    apikey: this is api key for goLang
+    iplimittype: time
+    ipwhitelist: [192.168.0.1,92.168.0.0]
+    ipblacklist: [192.168.1.1,192.168.1.2]
+    ratelimitlist: []
+    updatetime: 2019-01-14 18:00:00
+    createtime: 2019-01-14 18:00:00
+  - strategyname: 策略2
+    strategyid: 101010
+    auth: yes
+    basicusername: admin
+    baseipassword: admin
+    apikey: this is api key for goLang
+    iplimittype: time
+    ipwhitelist: [192.168.0.1,92.168.0.0]
+    ipblacklist: [192.168.1.1,192.168.1.2]
+    ratelimitlist: []
+    updatetime: 2019-01-14 18:00:00
+    createtime: 2019-01-14 18:00:00

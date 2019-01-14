@@ -7,5 +7,5 @@ updatetime: 2018-01-01 10:00:00
 createtime: 2018-01-01 09:00:00
 status: on
 apiconfigpath:  config/api/api_info.yml
-strategyconfigpath: config/strategy/strategy.yml
+strategyconfigpath: config/strategy/strategy_info.yml
 strategylist:

@@ -24,24 +24,32 @@ type ApiInfo struct {
 }
 
 type ApiGroup struct {
-	GroupName string    `json:"group_name"` //分组名称
-	GroupId   int       `json:"group_id"`   //分组id
-	ApiInfo   []ApiInfo `json:"api_info"`   //接口信息
+	GroupName string `json:"group_name"` //分组名称
+	GroupId   int    `json:"group_id"`   //分组id
+	Apis      Api    `json:"api_info"`   //接口信息
 }
 
 type GateWayInfo struct {
-	GateWayName        string         `json:"gateway_name"`         //网关名称
-	IpWhiteList        []string       `json:"ip_white_list"`        //白名单
-	IpBlackList        []string       `json:"ip_black_list"`        //黑名单
-	TimeOut            int            `json:"timeout"`              //超时时间
-	ApiList            []ApiInfo      `json:"api_list"`             //api列表
-	GroupList          []ApiGroup     `json:"group_list"`           //接口分组
-	UpdateTime         time.Time      `json:"update_time"`          //更新时间
-	CreateTime         time.Time      `json:"create_time"`          //创建时间
-	Status             string         `json:"status"`               //网关状态
-	ApiConfigPath      string         `json:"api_config_path"`      //接口配置路径
-	StrategyConfigPath string         `json:"strategy_config_path"` //策略配置地址
-	StrategyList       []StrategyInfo `json:"strategy_list"`        //策略列表
+	GateWayName        string     `json:"gateway_name"`         //网关名称
+	IpWhiteList        []string   `json:"ip_white_list"`        //白名单
+	IpBlackList        []string   `json:"ip_black_list"`        //黑名单
+	TimeOut            int        `json:"timeout"`              //超时时间
+	ApiList            Api        `json:"api_list"`             //api列表
+	GroupList          []ApiGroup `json:"group_list"`           //接口分组
+	UpdateTime         time.Time  `json:"update_time"`          //更新时间
+	CreateTime         time.Time  `json:"create_time"`          //创建时间
+	Status             string     `json:"status"`               //网关状态
+	ApiConfigPath      string     `json:"api_config_path"`      //接口配置路径
+	StrategyConfigPath string     `json:"strategy_config_path"` //策略配置地址
+	StrategyList       Strategy   `json:"strategy_list"`        //策略列表
+}
+
+type Strategy struct {
+	Strategy []StrategyInfo `json:"strategy"`
+}
+
+type Api struct {
+	ApiInfo []ApiInfo `json:"apiinfo" yaml:"apiinfo,omitempty"`
 }
 
 type GlobalConfig struct {

@@ -58,9 +58,9 @@ func GateWayList(path []string) []GateWayInfo {
 }
 
 // 读取接口列表
-func GetApiList(path string) []ApiInfo {
+func GetApiList(path string) Api {
 
-	var api []ApiInfo
+	var api Api
 	c, err := ioutil.ReadFile(path)
 	if err != nil {
 		panic("接口配置路径错误 :" + path)
@@ -76,8 +76,8 @@ func GetApiList(path string) []ApiInfo {
 }
 
 // 策略集合
-func GetStrategyList(path string) []StrategyInfo {
-	var strategy []StrategyInfo
+func GetStrategyList(path string) Strategy {
+	var strategy Strategy
 
 	c, err := ioutil.ReadFile(path)
 	if err != nil {

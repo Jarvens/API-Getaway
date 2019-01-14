@@ -32,7 +32,9 @@ func DeleteGateWay(response http.ResponseWriter, request *http.Request) {
 
 // 网关集合
 func List(response http.ResponseWriter, request *http.Request) {
-
+	//加载网关配置文件
+	conf.ReadConfigure("./config/global_config.yml")
+	globalConfig := conf.ParseConfigInfo()
 	var strategyList = make([]conf.StrategyInfo, 1)
 	var strategyInfo = conf.StrategyInfo{}
 	strategyInfo.ApiKey = "ApiKey: kadsjfiurhughwsfdjkanfkjgfh89374ytg4h3fnr"
@@ -43,5 +45,5 @@ func List(response http.ResponseWriter, request *http.Request) {
 	strategyInfo.StrategyId = "10001"
 	strategyList[0] = strategyInfo
 	res := common.Response{}
-	response.Write(common.JsonByteConv(res.Success(strategyList)))
+	response.Write(common.JsonByteConv(res.Success(globalConfig)))
 }
