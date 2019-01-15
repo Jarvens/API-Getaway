@@ -8,6 +8,7 @@ import (
 	"conf"
 	"fmt"
 	"net/http"
+	"time"
 )
 
 // 创建网关
@@ -33,17 +34,17 @@ func DeleteGateWay(response http.ResponseWriter, request *http.Request) {
 // 网关集合
 func List(response http.ResponseWriter, request *http.Request) {
 	//加载网关配置文件
-	conf.ReadConfigure("./config/global_config.yml")
 	globalConfig := conf.ParseConfigInfo()
-	var strategyList = make([]conf.StrategyInfo, 1)
-	var strategyInfo = conf.StrategyInfo{}
-	strategyInfo.ApiKey = "ApiKey: kadsjfiurhughwsfdjkanfkjgfh89374ytg4h3fnr"
-	strategyInfo.Auth = "已授权"
-	strategyInfo.BasicUserName = "admin"
-	strategyInfo.BasicPassword = "admin"
-	strategyInfo.StrategyName = "基础策略"
-	strategyInfo.StrategyId = "10001"
-	strategyList[0] = strategyInfo
+	//var strategyList = make([]conf.StrategyInfo, 1)
+	//var strategyInfo = conf.StrategyInfo{}
+	//strategyInfo.ApiKey = "ApiKey: kadsjfiurhughwsfdjkanfkjgfh89374ytg4h3fnr"
+	//strategyInfo.Auth = "已授权"
+	//strategyInfo.BasicUserName = "admin"
+	//strategyInfo.BasicPassword = "admin"
+	//strategyInfo.StrategyName = "基础策略"
+	//strategyInfo.StrategyId = "10001"
+	//strategyList[0] = strategyInfo
 	res := common.Response{}
+	fmt.Println("Request time: ", time.Now().Unix())
 	response.Write(common.JsonByteConv(res.Success(globalConfig)))
 }

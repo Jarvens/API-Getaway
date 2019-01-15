@@ -13,7 +13,7 @@ type Response struct {
 }
 
 const (
-	SUCECSS    = 0
+	SUCCESS    = 0
 	FAIL       = 1
 	DateFormat = "2006-01-02"
 	TimeFormat = "2006-01-02 15:04:05"
@@ -21,7 +21,7 @@ const (
 
 // SUCCESS
 func (res Response) Success(data interface{}) Response {
-	return Response{SUCECSS, "success", data, time.Now().Format(TimeFormat)}
+	return Response{SUCCESS, "success", data, time.Now().Format(TimeFormat)}
 }
 
 // FAIL

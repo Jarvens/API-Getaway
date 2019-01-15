@@ -11,7 +11,6 @@ import (
 )
 
 func ParseConfigInfo() GlobalConfig {
-	fmt.Printf("解析配置文件：%s", Configure)
 	var g GlobalConfig
 	err := yaml.Unmarshal([]byte(Configure), &g)
 	if err != nil {

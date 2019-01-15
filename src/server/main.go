@@ -4,6 +4,7 @@
 package main
 
 import (
+	"conf"
 	"fmt"
 	"log"
 	"net/http"
@@ -35,4 +36,9 @@ func main() {
 		log.Panic(err)
 	}
 	fmt.Printf("api-gateway starting success time: %v", time.Now())
+}
+
+func init() {
+	fmt.Println("starting load config")
+	conf.ReadConfigure("./config/global_config.yml")
 }

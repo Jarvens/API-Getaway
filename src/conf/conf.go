@@ -86,7 +86,6 @@ type RateLimitInfo struct {
 func init() {
 	//初始化为 空字符
 	Configure = ""
-	fmt.Printf("初始化全局配置路径: %v", Configure)
 }
 
 func GetDir(path string) (files []string, err error) {
@@ -106,7 +105,6 @@ func GetDir(path string) (files []string, err error) {
 			}
 			for _, v1 := range file {
 				files = append(files, path+separator+val.Name()+separator+v1.Name())
-				fmt.Printf("文件名称为：%v", v1.Name())
 			}
 		}
 	}
@@ -124,6 +122,6 @@ func ReadConfigure(filePath string) (err error) {
 		return
 	}
 	Configure = string(content)
-	fmt.Printf("读取全局配置文件为: %s\n", Configure)
+	//fmt.Printf("Global config info: %s\n", Configure)
 	return
 }
