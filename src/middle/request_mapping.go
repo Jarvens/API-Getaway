@@ -1,6 +1,6 @@
 // auth: kunlun
 // date: 2019-01-15
-// description: 
+// description:
 package middle
 
 import (
@@ -13,12 +13,12 @@ import (
 	"yihuo"
 )
 
-func Mapping(res http.ResponseWriter,req *http.Request,param conf.Param,context *yihuo.Context)  {
+func Mapping(res http.ResponseWriter, req *http.Request, param conf.Param, context *yihuo.Context) {
 	//更新实时访问数据
 	go context.VisitCount.CurrentCount.UpdateCurrentCount()
 	//验证ip地址合法性
-	f,s:=IpLimit(context,res,req)
-	if !f{
+	f, s := IpLimit(context, res, req)
+	if !f {
 		res.WriteHeader(403)
 		res.Write([]byte(s))
 		//更新失败次数
@@ -27,8 +27,8 @@ func Mapping(res http.ResponseWriter,req *http.Request,param conf.Param,context 
 		go context.VisitCount.TotalCount.UpdateCurrentCount()
 		return
 	}
-	f,s=Auth(context,res,req)
-	if !f{
+	f, s = Auth(context, res, req)
+	if !f {
 		res.WriteHeader(403)
 		res.Write([]byte(s))
 		//更新失败次数
@@ -37,8 +37,8 @@ func Mapping(res http.ResponseWriter,req *http.Request,param conf.Param,context 
 		go context.VisitCount.TotalCount.UpdateCurrentCount()
 		return
 	}
-	f,s=RateLimit(context)
-	if!f{
+	f, s = RateLimit(context)
+	if !f {
 		res.WriteHeader(403)
 		res.Write([]byte(s))
 		//更新失败次数
@@ -48,12 +48,27 @@ func Mapping(res http.ResponseWriter,req *http.Request,param conf.Param,context 
 		return
 	}
 
-	statusCode,body,headers:=
+	statusCode, body, headers := CreateRequest(context, req, res, param)
+	for key, values := range headers {
+		for _, value := range values {
+			res.Header().Set(key, value)
+		}
+	}
+	res.WriteHeader(statusCode)
+	res.Write(body)
+	if statusCode != 200 {
+		go context.VisitCount.FailureCount.UpdateDayCount()
+		go context.VisitCount.TotalCount.UpdateDayCount()
+	} else {
+		go context.VisitCount.SuccessCount.UpdateDayCount()
+		go context.VisitCount.TotalCount.UpdateDayCount()
+	}
+	return
 
 }
 
 // 将请求参数写入请求中
-func CreateRequest(g *yihuo.Context,httpRequest *http.Request,httpResponse http.ResponseWriter,params conf.Param) (int,[]byte,map[string][]string) {
+func CreateRequest(g *yihuo.Context, httpRequest *http.Request, httpResponse http.ResponseWriter, params yihuo.Params) (int, []byte, map[string][]string) {
 	api := g.ApiInfo
 	var backendHeaders map[string][]string = make(map[string][]string)
 	var backendQueryParams map[string][]string = make(map[string][]string)
@@ -61,7 +76,7 @@ func CreateRequest(g *yihuo.Context,httpRequest *http.Request,httpResponse http.
 	var restfulParam map[string]string = make(map[string]string)
 	err := httpRequest.ParseForm()
 	if err != nil {
-		return 500,[]byte("Parsing Arguments Fail"),make(map[string][]string)
+		return 500, []byte("Parsing Arguments Fail"), make(map[string][]string)
 	}
 
 	backendMethod := strings.ToUpper(api.ProxyMethod)
@@ -72,12 +87,12 @@ func CreateRequest(g *yihuo.Context,httpRequest *http.Request,httpResponse http.
 	backenDomain := api.BackendPath + api.ProxyURL
 
 	// 将restful参数数组转为map
-	for _,p := range params {
+	for _, p := range params {
 		restfulParam[p.Key] = p.Value
 	}
-	requ,err := request.Method(backendMethod,backenDomain)
+	requ, err := request.Method(backendMethod, backenDomain)
 
-	if err != nil{
+	if err != nil {
 		panic(err)
 	}
 	for _, reqParam := range api.ProxyParams {
@@ -90,17 +105,17 @@ func CreateRequest(g *yihuo.Context,httpRequest *http.Request,httpResponse http.
 		case "body":
 			if httpRequest.Method == "POST" || httpRequest.Method == "PUT" || httpRequest.Method == "PATCH" {
 				param = httpRequest.PostForm[reqParam.Key]
-				if param == nil && strings.Join(httpRequest.Header["Content-Type"],",") == "multipart/form-data"{
-					f,fh,err := httpRequest.FormFile(reqParam.Key)
+				if param == nil && strings.Join(httpRequest.Header["Content-Type"], ",") == "multipart/form-data" {
+					f, fh, err := httpRequest.FormFile(reqParam.Key)
 					if err != nil {
 						continue
 					}
 					defer f.Close()
-					body,err := ioutil.ReadAll(f)
+					body, err := ioutil.ReadAll(f)
 					if err != nil {
 						continue
 					}
-					requ.AddFile(reqParam.ProxyKey,fh.Filename,body)
+					requ.AddFile(reqParam.ProxyKey, fh.Filename, body)
 					isFile = true
 				}
 			} else {
@@ -109,12 +124,12 @@ func CreateRequest(g *yihuo.Context,httpRequest *http.Request,httpResponse http.
 		case "query":
 			param = httpRequest.Form[reqParam.Key]
 		case "restful":
-			param = strings.Split(restfulParam[reqParam.Key],",")
+			param = strings.Split(restfulParam[reqParam.Key], ",")
 		}
 
 		if param == nil {
 			if reqParam.NotEmpty && !isFile {
-				return 400, []byte("Missing required parameters"),make(map[string][]string)
+				return 400, []byte("Missing required parameters"), make(map[string][]string)
 			} else {
 				continue
 			}
@@ -132,8 +147,8 @@ func CreateRequest(g *yihuo.Context,httpRequest *http.Request,httpResponse http.
 			backendQueryParams[reqParam.ProxyKey] = param
 		case "restful":
 			pattern := ":" + reqParam.ProxyKey
-			p := strings.Join(param,",")
-			backenDomain = strings.Replace(backenDomain,pattern,p,-1)
+			p := strings.Join(param, ",")
+			backenDomain = strings.Replace(backenDomain, pattern, p, -1)
 		}
 	}
 	fmt.Println(backenDomain)
@@ -165,7 +180,7 @@ func CreateRequest(g *yihuo.Context,httpRequest *http.Request,httpResponse http.
 		requ.SetFormParam(key, values...)
 	}
 	if api.IsRaw {
-		body,_ := ioutil.ReadAll(httpRequest.Body)
+		body, _ := ioutil.ReadAll(httpRequest.Body)
 		requ.SetRawBody([]byte(body))
 	}
 
@@ -175,7 +190,7 @@ func CreateRequest(g *yihuo.Context,httpRequest *http.Request,httpResponse http.
 	}
 	res, err := requ.Send()
 	if err != nil {
-		return 500,[]byte(""),make(map[string][]string)
+		return 500, []byte(""), make(map[string][]string)
 	}
 
 	httpResponseHeader := httpResponse.Header()
@@ -185,16 +200,16 @@ func CreateRequest(g *yihuo.Context,httpRequest *http.Request,httpResponse http.
 	for key, values := range res.Headers() {
 		httpResponseHeader[key] = values
 	}
-	return res.StatusCode(), res.Body(),httpResponseHeader
+	return res.StatusCode(), res.Body(), httpResponseHeader
 }
 
 func parseHeader(header string) string {
-	headerArray := strings.Split(header,"-")
+	headerArray := strings.Split(header, "-")
 	result := ""
-	for i,h := range headerArray {
-		h = strings.Replace(h,"_","",-1)
+	for i, h := range headerArray {
+		h = strings.Replace(h, "_", "", -1)
 		result += strings.ToUpper(h[0:1]) + strings.ToLower(h[1:])
-		if i + 1 < len(headerArray) {
+		if i+1 < len(headerArray) {
 			result += "-"
 		}
 	}

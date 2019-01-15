@@ -15,33 +15,54 @@ var (
 )
 
 type ApiInfo struct {
-	ApiName    string `json:"api_name"`    //接口名称
-	RequestUrl string `json:"request_url"` //请求地址
-	MethodType string `json:"method_type"` //请求方式
-	GroupName  string `json:"group_name"`  //分组名称
-	GroupId    int    `group_id`           //分组id
-	Status     bool   `json:"status"`      //接口状态
+	ApiName        string          `json:"api_name" yaml:"api_name"`
+	GroupID        int             `json:"group_id" yaml:"group_id"`
+	RequestURL     string          `json:"request_url" yaml:"request_url"`
+	RequestMethod  []string        `json:"request_method" yaml:"request_method"`
+	BackendID      int             `json:"backend_id" yaml:"backend_id"`
+	ProxyURL       string          `json:"proxy_url" yaml:"proxy_url"`
+	ProxyMethod    string          `json:"proxy_method" yaml:"proxy_method"`
+	IsRaw          bool            `json:"is_raw" yaml:"is_raw"`
+	ProxyParams    []Param         `json:"proxy_params" yaml:"proxy_params"`
+	ConstantParams []ConstantParam `json:"constant_params" yaml:"constant_params"`
+	Follow         bool            `json:"follow" yaml:"follow"`
 }
 
 type ApiGroup struct {
-	GroupName string `json:"group_name"` //分组名称
-	GroupId   int    `json:"group_id"`   //分组id
-	Apis      Api    `json:"api_info"`   //接口信息
+	Group []ApiGroup `json:"group"`
+}
+
+type ApiGroupInfo struct {
+	GroupID   int    `json:"group_id" yaml:"group_id"`
+	GroupName string `json:"group_name" yaml:"group_name"`
 }
 
 type GateWayInfo struct {
-	GateWayName        string     `json:"gateway_name"`         //网关名称
-	IpWhiteList        []string   `json:"ip_white_list"`        //白名单
-	IpBlackList        []string   `json:"ip_black_list"`        //黑名单
-	TimeOut            int        `json:"timeout"`              //超时时间
-	ApiList            Api        `json:"api_list"`             //api列表
-	GroupList          []ApiGroup `json:"group_list"`           //接口分组
-	UpdateTime         time.Time  `json:"update_time"`          //更新时间
-	CreateTime         time.Time  `json:"create_time"`          //创建时间
-	Status             string     `json:"status"`               //网关状态
-	ApiConfigPath      string     `json:"api_config_path"`      //接口配置路径
-	StrategyConfigPath string     `json:"strategy_config_path"` //策略配置地址
-	StrategyList       Strategy   `json:"strategy_list"`        //策略列表
+	GateWayName        string    `json:"gateway_name"`  //网关名称
+	GateWayAlias       string    `json:"gateway_alias"` //网关别名
+	IPLimitType        string    `json:"ip_limit_type" `
+	IpWhiteList        []string  `json:"ip_white_list"`        //白名单
+	IpBlackList        []string  `json:"ip_black_list"`        //黑名单
+	TimeOut            int       `json:"timeout"`              //超时时间
+	ApiList            Api       `json:"api_list"`             //api列表
+	GroupList          ApiGroup  `json:"group_list"`           //接口分组
+	UpdateTime         time.Time `json:"update_time"`          //更新时间
+	CreateTime         time.Time `json:"create_time"`          //创建时间
+	GateWayStatus      string    `json:"gateway_status"`       //网关状态
+	ApiConfigPath      string    `json:"api_config_path"`      //接口配置路径
+	StrategyConfigPath string    `json:"strategy_config_path"` //策略配置地址
+	StrategyList       Strategy  `json:"strategy_list"`        //策略列表
+	BackendList        Backend
+}
+
+type Backend struct {
+	Backend []BackendInfo `json:"backend" yaml:"backend"`
+}
+
+type BackendInfo struct {
+	BackendID   int    `json:"backend_id" yaml:"backend_id"`
+	BackendName string `json:"backend_name" yaml:"backend_name"`
+	BackendPath string `json:"backend_path" yaml:"backend_path"`
 }
 
 type Strategy struct {
@@ -49,7 +70,7 @@ type Strategy struct {
 }
 
 type Api struct {
-	ApiInfo []ApiInfo `json:"apiinfo" yaml:"apiinfo,omitempty"`
+	Apis []ApiInfo `json:"apis"`
 }
 
 type GlobalConfig struct {
