@@ -83,6 +83,20 @@ type RateLimitInfo struct {
 	EndTime   int    `json:"end_time"`   //结束时间
 }
 
+type Param struct {
+	Key              string `json:"key" yaml:"key"`
+	KeyPosition      string `json:"key_position" yaml:"key_position"`
+	NotEmpty         bool   `json:"not_empty" yaml:"not_empty"`
+	ProxyKey         string `json:"proxy_key" yaml:"proxy_key"`
+	ProxyKeyPosition string `json:"proxy_key_position" yaml:"proxy_key_position"`
+}
+
+type ConstantParam struct {
+	Position string `json:"position" yaml:"position"`
+	Key      string `json:"key" yaml:"key"`
+	Value    string `json:"value" yaml:"value"`
+}
+
 func init() {
 	//初始化为 空字符
 	Configure = ""

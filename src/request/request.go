@@ -29,7 +29,7 @@ type Request interface {
 
 	// 文件操作
 	AddFile(string, string, []byte) Request
-	Send() (Response, err error)
+	Send() (Response, error)
 }
 
 // 定义表单文件上传结构体
@@ -52,8 +52,18 @@ type request struct {
 	files       map[string]*formFile
 }
 
-// 请求头设置
-// value 不为空则 set 否则删除该headers中的key
+func (request *request) SetURL(url string) {
+	request.URL = url
+}
+
+func (this *request) FormParams() map[string][]string {
+	params := make(map[string][]string)
+	for key, values := range this.queryParams {
+		params[key] = values[:]
+	}
+	return params
+}
+
 func (request *request) SetHeader(key string, values ...string) Request {
 
 	if len(values) > 0 {
@@ -196,4 +206,37 @@ func (this *request) Send() (res Response, err error) {
 		return
 	}
 
+	req.Header.Set("Accept-Encoding", "gzip")
+	req.Header = parseHeaders(this.headers)
+	httpResponse, err := this.client.Do(req)
+	if err != nil {
+		return
+	}
+	res, err = newResponse(httpResponse)
+	if err != nil {
+		return
+	}
+	return
+
+}
+
+func parseHeaders(headers map[string][]string) http.Header {
+	h := http.Header{}
+	for key, values := range headers {
+		for _, value := range values {
+			h.Add(key, value)
+		}
+	}
+
+	_, hasAccept := h["Accept"]
+	if !hasAccept {
+		h.Add("Accept", "*/*")
+	}
+
+	_, hasAgent := h["User-Agent"]
+	if !hasAgent {
+		h.Add("User-Agent", "kunlun-request/"+Version)
+	}
+
+	return h
 }
