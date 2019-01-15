@@ -35,6 +35,7 @@ type Strategy struct {
 
 type Api struct {
 	RequestURL     string               `json:"request_url"`
+	BackendPath    string               `json:"backend_path" yaml:"backend_path"`
 	ProxyURL       string               `json:"proxy_url"`
 	ProxyMethod    string               `json:"proxy_method"`
 	IsRaw          bool                 `json:"is_raw"`

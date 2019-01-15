@@ -5,6 +5,7 @@ package request
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -239,4 +240,56 @@ func parseHeaders(headers map[string][]string) http.Header {
 	}
 
 	return h
+}
+
+func Method(method, urlPath string) (Request, error) {
+	if method != "GET" && method != "POST" && method != "PUT" && method != "DELETE" &&
+		method != "HEAD" && method != "OPTIONS" && method != "PATCH" {
+		return nil, errors.New("Unsupported Request Method")
+	}
+
+	return newRequest(method, urlPath)
+}
+
+//创建 request请求
+func newRequest(method, urlPath string) (Request, error) {
+	// Validate URLPath
+	URL, err := parseURL(urlPath)
+	if err != nil {
+		return nil, err
+	}
+
+	// Extract the url params from the urlpath
+	queryParams := make(map[string][]string)
+	for key, values := range URL.Query() {
+		queryParams[key] = values
+	}
+
+	urlPath = URL.Scheme + "://" + URL.Host + URL.Path
+	r := &request{client: &http.Client{}, method: method, URL: urlPath}
+	r.headers = make(map[string][]string)
+	r.formParams = make(map[string][]string)
+	r.queryParams = queryParams
+	r.files = make(map[string]*formFile)
+	return r, nil
+}
+
+// URL地址转换
+func parseURL(urlPath string) (URL *url.URL, err error) {
+	URL, err = url.Parse(urlPath)
+	if err != nil {
+		return nil, err
+	}
+	if URL.Scheme != "http" && URL.Scheme != "https" {
+		urlPath = "http://" + urlPath
+		URL, err = url.Parse(urlPath)
+		if err != nil {
+			return nil, err
+		}
+
+		if URL.Scheme != "http" && URL.Scheme != "https" {
+			return nil, errors.New("only HTTP and HTTPS are accepted")
+		}
+	}
+	return
 }

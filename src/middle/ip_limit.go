@@ -9,7 +9,7 @@ import (
 	"yihuo"
 )
 
-func IpLimit(context *yihuo.Context, res http.Response, req *http.Request) (bool, string) {
+func IpLimit(context *yihuo.Context, res http.ResponseWriter, req *http.Request) (bool, string) {
 	remoteAddr := req.RemoteAddr
 	remoteIp := InterceptIP(remoteAddr, ":")
 	if !globalIpLimit(context, remoteIp) {

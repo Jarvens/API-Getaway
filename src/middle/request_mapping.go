@@ -1,0 +1,202 @@
+// auth: kunlun
+// date: 2019-01-15
+// description: 
+package middle
+
+import (
+	"conf"
+	"fmt"
+	"io/ioutil"
+	"net/http"
+	"request"
+	"strings"
+	"yihuo"
+)
+
+func Mapping(res http.ResponseWriter,req *http.Request,param conf.Param,context *yihuo.Context)  {
+	//更新实时访问数据
+	go context.VisitCount.CurrentCount.UpdateCurrentCount()
+	//验证ip地址合法性
+	f,s:=IpLimit(context,res,req)
+	if !f{
+		res.WriteHeader(403)
+		res.Write([]byte(s))
+		//更新失败次数
+		go context.VisitCount.FailureCount.UpdateCurrentCount()
+		//更新访问总量
+		go context.VisitCount.TotalCount.UpdateCurrentCount()
+		return
+	}
+	f,s=Auth(context,res,req)
+	if !f{
+		res.WriteHeader(403)
+		res.Write([]byte(s))
+		//更新失败次数
+		go context.VisitCount.FailureCount.UpdateCurrentCount()
+		//更新访问总量
+		go context.VisitCount.TotalCount.UpdateCurrentCount()
+		return
+	}
+	f,s=RateLimit(context)
+	if!f{
+		res.WriteHeader(403)
+		res.Write([]byte(s))
+		//更新失败次数
+		go context.VisitCount.FailureCount.UpdateCurrentCount()
+		//更新访问总量
+		go context.VisitCount.TotalCount.UpdateCurrentCount()
+		return
+	}
+
+	statusCode,body,headers:=
+
+}
+
+// 将请求参数写入请求中
+func CreateRequest(g *yihuo.Context,httpRequest *http.Request,httpResponse http.ResponseWriter,params conf.Param) (int,[]byte,map[string][]string) {
+	api := g.ApiInfo
+	var backendHeaders map[string][]string = make(map[string][]string)
+	var backendQueryParams map[string][]string = make(map[string][]string)
+	var backendFormParams map[string][]string = make(map[string][]string)
+	var restfulParam map[string]string = make(map[string]string)
+	err := httpRequest.ParseForm()
+	if err != nil {
+		return 500,[]byte("Parsing Arguments Fail"),make(map[string][]string)
+	}
+
+	backendMethod := strings.ToUpper(api.ProxyMethod)
+	if api.Follow {
+		backendMethod = strings.ToUpper(httpRequest.Method)
+	}
+
+	backenDomain := api.BackendPath + api.ProxyURL
+
+	// 将restful参数数组转为map
+	for _,p := range params {
+		restfulParam[p.Key] = p.Value
+	}
+	requ,err := request.Method(backendMethod,backenDomain)
+
+	if err != nil{
+		panic(err)
+	}
+	for _, reqParam := range api.ProxyParams {
+		var param []string
+		isFile := false
+		switch reqParam.KeyPosition {
+		case "header":
+			key := parseHeader(reqParam.Key)
+			param = httpRequest.Header[key]
+		case "body":
+			if httpRequest.Method == "POST" || httpRequest.Method == "PUT" || httpRequest.Method == "PATCH" {
+				param = httpRequest.PostForm[reqParam.Key]
+				if param == nil && strings.Join(httpRequest.Header["Content-Type"],",") == "multipart/form-data"{
+					f,fh,err := httpRequest.FormFile(reqParam.Key)
+					if err != nil {
+						continue
+					}
+					defer f.Close()
+					body,err := ioutil.ReadAll(f)
+					if err != nil {
+						continue
+					}
+					requ.AddFile(reqParam.ProxyKey,fh.Filename,body)
+					isFile = true
+				}
+			} else {
+				continue
+			}
+		case "query":
+			param = httpRequest.Form[reqParam.Key]
+		case "restful":
+			param = strings.Split(restfulParam[reqParam.Key],",")
+		}
+
+		if param == nil {
+			if reqParam.NotEmpty && !isFile {
+				return 400, []byte("Missing required parameters"),make(map[string][]string)
+			} else {
+				continue
+			}
+		}
+
+		switch reqParam.ProxyKeyPosition {
+		case "header":
+			key := parseHeader(reqParam.ProxyKey)
+			backendHeaders[key] = param
+		case "body":
+			if backendMethod == "POST" || backendMethod == "PUT" || backendMethod == "PATCH" {
+				backendFormParams[reqParam.ProxyKey] = param
+			}
+		case "query":
+			backendQueryParams[reqParam.ProxyKey] = param
+		case "restful":
+			pattern := ":" + reqParam.ProxyKey
+			p := strings.Join(param,",")
+			backenDomain = strings.Replace(backenDomain,pattern,p,-1)
+		}
+	}
+	fmt.Println(backenDomain)
+
+	for _, constParam := range api.ConstantParams {
+		switch constParam.Position {
+		case "header":
+			backendHeaders[constParam.Key] = []string{constParam.Value}
+		case "body":
+			if backendMethod == "POST" || backendMethod == "PUT" || backendMethod == "PATCH" {
+				backendFormParams[constParam.Key] = []string{constParam.Value}
+			} else {
+				backendQueryParams[constParam.Key] = []string{constParam.Value}
+			}
+		case "query":
+			backendQueryParams[constParam.Key] = []string{constParam.Value}
+		}
+	}
+
+	requ.SetURL(backenDomain)
+
+	for key, values := range backendHeaders {
+		requ.SetHeader(key, values...)
+	}
+	for key, values := range backendQueryParams {
+		requ.SetQueryParam(key, values...)
+	}
+	for key, values := range backendFormParams {
+		requ.SetFormParam(key, values...)
+	}
+	if api.IsRaw {
+		body,_ := ioutil.ReadAll(httpRequest.Body)
+		requ.SetRawBody([]byte(body))
+	}
+
+	cookies := make(map[string]string)
+	for _, cookie := range httpRequest.Cookies() {
+		cookies[cookie.Name] = cookie.Value
+	}
+	res, err := requ.Send()
+	if err != nil {
+		return 500,[]byte(""),make(map[string][]string)
+	}
+
+	httpResponseHeader := httpResponse.Header()
+	for key, _ := range httpResponseHeader {
+		httpResponseHeader[key] = nil
+	}
+	for key, values := range res.Headers() {
+		httpResponseHeader[key] = values
+	}
+	return res.StatusCode(), res.Body(),httpResponseHeader
+}
+
+func parseHeader(header string) string {
+	headerArray := strings.Split(header,"-")
+	result := ""
+	for i,h := range headerArray {
+		h = strings.Replace(h,"_","",-1)
+		result += strings.ToUpper(h[0:1]) + strings.ToLower(h[1:])
+		if i + 1 < len(headerArray) {
+			result += "-"
+		}
+	}
+	return result
+}
